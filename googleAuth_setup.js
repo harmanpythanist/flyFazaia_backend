@@ -4,6 +4,7 @@ const {Strategy}=require("passport-google-oauth2");
 require("dotenv").config()
 
 
+console.log(process.env.NODE_ENV);
 
 
 passport.use(new Strategy({clientID:process.env.CLIENTID,clientSecret:process.env.CLIENTSECRET,callbackURL:process.env.NODE_ENV!=="developement"?process.env.GOOGLE_CALLBACK_URL:"http://localhost:4600/api/auth/google/callback"},async(access_token,refresh_token,profile,done)=>{

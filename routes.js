@@ -35,7 +35,7 @@ router.route("/auth/google/callback").get(passport.authenticate("google",{sessio
 router.route("/access_check").post(access_check);
 //refresh fnx from middleware
 router.route("/refresh_check").post(refresh_check);
-
+router.route("/").get((req,res)=>{return res.status(200).json("Server running")})
 
 
 
