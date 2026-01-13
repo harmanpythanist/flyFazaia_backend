@@ -1,38 +1,67 @@
+// db.js
 const mysql = require("mysql2");
-require('dotenv').config()
+const fs = require("fs");
+require("dotenv").config();
+
+/**
+ * Create a MySQL pool for Aiven MySQL
+ * Works both locally (with ca.pem) and deployed (via env variable)
+ */
 function createPool() {
-  return mysql.createPool({ host: process.env.DB_HOST,
-  port: process.env.DB_PORT,       // add this line
-  user: process.env.DB_USER,
-  password: process.env.DB_SECRET,
-  database: process.env.DB_DATABASE,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  ssl: {  ca: process.env.DB_SSL } 
+  // SSL config
+  let sslConfig = {};
+  if (process.env.DB_SSL) {
+    // For deployment: DB_SSL stored as single line env variable with \n
+    sslConfig.ca = process.env.DB_SSL.replace(/\\n/g, "\n");
+  } else if (fs.existsSync("./certs/ca.pem")) {
+    // For local dev: use downloaded ca.pem file
+    sslConfig.ca = fs.readFileSync("./certs/ca.pem");
+  } else {
+    // fallback: rejectUnauthorized false (not secure, free-tier quick test)
+    sslConfig.rejectUnauthorized = false;
+  }
+
+  const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 3306, // default 3306 if not set
+    user: process.env.DB_USER,
+    password: process.env.DB_SECRET,
+    database: process.env.DB_DATABASE,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    ssl: sslConfig,
   }).promise();
+
+  return pool;
 }
 
 // Initialize pool
-let db = createPool();
+let pool = createPool();
 
-// Helper to reconnect automatically if connection fails
+/**
+ * Helper query function with retry for ETIMEDOUT / connection issues
+ */
 async function query(sql, params) {
   try {
-    return await db.query(sql, params);
+    return await pool.query(sql, params);
   } catch (err) {
     console.error("DB query error:", err.message);
 
-    // If error is connection-related, try to reconnect
-    if (err.fatal || err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNREFUSED') {
+    // Retry on connection issues
+    if (
+      err.fatal ||
+      err.code === "PROTOCOL_CONNECTION_LOST" ||
+      err.code === "ETIMEDOUT" ||
+      err.code === "ECONNREFUSED"
+    ) {
       console.log("Attempting to reconnect to DB...");
-      db = createPool(); // re-create the pool
-      return await db.query(sql, params); // retry query once
+      pool = createPool(); // recreate pool
+      return await pool.query(sql, params); // retry once
     }
 
-    // If other error, re-throw
-    throw err;
+    throw err; // rethrow other errors
   }
 }
 
-module.exports = { db, query };
+module.exports = { db: pool, pool, query };
