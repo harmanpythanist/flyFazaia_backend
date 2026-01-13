@@ -20,6 +20,7 @@ const google_callback = async (req, res, next) => {
       "UPDATE flyfazaia.users x SET refreshToken=? WHERE x.id=?",
       [refresh, req.user.id]
     );
+console.log("sending auth resp back to frontend");
 
     return res.send(`
       <html>
