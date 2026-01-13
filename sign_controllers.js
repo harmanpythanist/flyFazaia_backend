@@ -20,9 +20,9 @@ const google_callback = async (req, res, next) => {
       "UPDATE flyfazaia.users x SET refreshToken=? WHERE x.id=?",
       [refresh, req.user.id]
     );
-console.log("sending auth resp back to frontend");
 
-    return res.send(`
+
+     res.send(`
       <html>
       
         <body>
@@ -35,12 +35,15 @@ console.log("sending auth resp back to frontend");
                 refreshToken: ${JSON.stringify(refresh)},
                 user: ${JSON.stringify(req.user)}
               },
-             "*"
+             ${process.env.FRONTEND_URL}
             );
           </script>
         </body>
       </html>
     `);
+   console.log("sending auth resp back to frontend");
+   return;
+    
   } catch (error) {
     console.error(error.message);
     const err = new Error(error.message);
