@@ -1,5 +1,4 @@
 const express=require("express");
-const {db}=require("./mySql_db")
 require("dotenv").config();
 const app=express();
 const cors=require("cors");
