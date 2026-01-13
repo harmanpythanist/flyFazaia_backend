@@ -1,10 +1,12 @@
 const mysql = require("mysql2");
 require('dotenv').config()
+
 function createPool() {
-  return mysql.createPool({host: process.env.DB_HOST,
-     user: process.env.DB_USER, 
-     password: process.env.DB_SECRET, 
-     database: process.env.DB_DATABASE,
+  return mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER, 
+    password: process.env.DB_SECRET, 
+    database: process.env.DB_DATABASE,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -13,9 +15,10 @@ function createPool() {
 }
 
 // Initialize pool
-let db = createPool();
+let pool = createPool();
+let db = pool; // db is just a promise-wrapped pool
 
-// Helper to reconnect automatically if connection fails
+// Optional: helper query function with auto-reconnect
 async function query(sql, params) {
   try {
     return await db.query(sql, params);
@@ -25,7 +28,8 @@ async function query(sql, params) {
     // If error is connection-related, try to reconnect
     if (err.fatal || err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNREFUSED') {
       console.log("Attempting to reconnect to DB...");
-      db = createPool(); // re-create the pool
+      pool = createPool(); // re-create the pool
+      db = pool;
       return await db.query(sql, params); // retry query once
     }
 
@@ -34,4 +38,4 @@ async function query(sql, params) {
   }
 }
 
-module.exports = { db, query };
+module.exports = { db, pool, query };
