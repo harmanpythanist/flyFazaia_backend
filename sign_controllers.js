@@ -9,6 +9,8 @@ const access_generate=(x)=>{return jwt.sign(x,process.env.TokenSecret,{expiresIn
 const generate_refresh=(x)=>{return jwt.sign(x,process.env.TokenSecret,{expiresIn:"72h"})};
 
 const google_callback = async (req, res, next) => {
+  console.log("here in google cb sign controller");
+  
   try {
     const access = access_generate(req.user);
     const refresh = generate_refresh(req.user);
