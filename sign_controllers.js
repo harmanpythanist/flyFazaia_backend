@@ -42,6 +42,8 @@ const google_callback = async (req, res, next) => {
       </html>
     `);
    console.log("sending auth resp back to frontend");
+   console.log("window.opener is null?", !window.opener);
+
    return;
     
   } catch (error) {
