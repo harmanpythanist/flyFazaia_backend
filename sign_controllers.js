@@ -14,46 +14,55 @@ const google_callback = async (req, res, next) => {
   try {
     const access = access_generate(req.user);
     const refresh = generate_refresh(req.user);
-// console.log("err here");
 
     await db.execute(
       "UPDATE flyfazaia.users x SET refreshToken=? WHERE x.id=?",
       [refresh, req.user.id]
     );
 
+    // Build HTML string to send to browser
+    const html = `<!DOCTYPE html>
+<html>
+<head><title>OAuth Success</title></head>
+<body>
+  <script>
+    (function() {
+      const data = {
+        type: "OAUTH_SUCCESS",
+        accessToken: ${JSON.stringify(access)},
+        refreshToken: ${JSON.stringify(refresh)},
+        user: ${JSON.stringify(req.user)}
+      };
 
-     res.send(`
-      <html>
+      const targetOrigin = "${process.env.FRONTEND_URL}";
       
-        <body>
-          <script>
-            // Send data to the opener (Next frontend)
-            window.opener.postMessage(
-              {
-                type: "OAUTH_SUCCESS",
-                accessToken: ${JSON.stringify(access)},
-                refreshToken: ${JSON.stringify(refresh)},
-                user: ${JSON.stringify(req.user)}
-              },
-            "${process.env.FRONTEND_URL}"
-            );
-          </script>
-        </body>
-      </html>
-    `);
-   console.log("sending auth resp back to frontend");
-   console.log("window.opener is null?", !window.opener);
+      if (window.opener && !window.opener.closed) {
+        try {
+          console.log("Sending message to:", targetOrigin);
+          window.opener.postMessage(data, targetOrigin);
+          setTimeout(function() { window.close(); }, 100);
+        } catch (err) {
+          console.error("postMessage failed:", err);
+          document.body.innerHTML = "<h3>Login successful! Please close this window.</h3>";
+        }
+      } else {
+        document.body.innerHTML = "<h3>Login successful! Please close this window and return to the app.</h3>";
+      }
+    })();
+  </script>
+</body>
+</html>`;
 
-   return;
+    console.log("sending auth resp back to frontend");
+    res.send(html);
     
   } catch (error) {
-    console.error(error.message);
-    const err = new Error(error.message);
-    err.status = 500;
-    return next(err);
+    console.error("Error in google_callback:", error.message);
+    if (!res.headersSent) {
+      return next(error);
+    }
   }
 };
-
 
 const access_check=async(req,res,next)=>{
 console.log("here");
