@@ -35,7 +35,7 @@ const google_callback = async (req, res, next) => {
                 refreshToken: ${JSON.stringify(refresh)},
                 user: ${JSON.stringify(req.user)}
               },
-             ${process.env.FRONTEND_URL}
+            "${process.env.FRONTEND_URL}"
             );
           </script>
         </body>
