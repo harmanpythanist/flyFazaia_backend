@@ -110,9 +110,19 @@ return next(err);
 
 
 
+const sitemap_seo_fnx=async(req,res,next)=>{
+    try {
+        let [rows]=await db.execute('select x.title from courses x');
+        if(!rows||rows.length<1){let err=new Error();err.message='no result found';err.status=400;throw err;}
+        return res.status(200).json({msg:"success",data:rows});
+    } catch (error) {
+        console.log(error.message);
+        
+        return next(error)
+    }
+}
 
 
 
 
-
-module.exports={courses_db,courses_cache,syllabus_cache,syllabus}
+module.exports={courses_db,courses_cache,syllabus_cache,syllabus,sitemap_seo_fnx}

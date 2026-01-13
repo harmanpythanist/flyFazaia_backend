@@ -1,6 +1,6 @@
 
 const {router}=require("./app")
-const {courses_db,courses_cache, syllabus,syllabus_cache}=require("./courses_controllers");
+const {courses_db,courses_cache, syllabus,syllabus_cache, sitemap_seo_fnx}=require("./courses_controllers");
 const { enroll } = require("./enroll_controllers");
 const { google_callback, access_check, refresh_check } = require("./sign_controllers");
 const passport =require("./googleAuth_setup");
@@ -13,7 +13,7 @@ router.route("/courses").get(courses_db); // ?type=full or ?type=list
 
 // 🧾 Syllabus
 router.route("/syllabus").get(syllabus); // ?id=xyz
-
+router.route("/sitemap").get(sitemap_seo_fnx)
 // 💼 Services
 router.route("/services").get(services_fnx); // get all services
 router.route("/service/form").post(services_form); // service form submit
