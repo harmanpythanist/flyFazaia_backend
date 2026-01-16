@@ -37,7 +37,6 @@ router.route("/access_check").post(access_check);
 //refresh fnx from middleware
 router.route("/refresh_check").post(refresh_check);
 router.route("/").get(async(req,res)=>{console.log("sss");
-;let [rows]=await db.execute("select 1 + 2 as x");console.log(rows);
 
     ;return res.status(200).json({msg:"Server running",data:rows})})
 
