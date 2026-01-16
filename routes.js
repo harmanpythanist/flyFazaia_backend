@@ -38,7 +38,7 @@ router.route("/access_check").post(access_check);
 router.route("/refresh_check").post(refresh_check);
 router.route("/").get(async(req,res)=>{console.log("sss");
 
-    ;return res.status(200).json({msg:"Server running",data:rows})})
+    ;return res.status(200).json({msg:"Server running"})})
 
 
 
